@@ -1,9 +1,9 @@
 Ts = 0.1;
 
 %Step Response
-t = (0:Ts:20)';          % 0~20초
+t = (0:Ts:20)';          % 0~20 sec
 u = zeros(size(t));
-u(t >= 1) = 0.9;         % 1초 이후 0.9 step
+u(t >= 1) = 0.9;         % 0.9 step after 1 sec
 
 simin.time = t;
 simin.signals.values = u;
