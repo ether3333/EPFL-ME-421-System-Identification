@@ -43,10 +43,10 @@ title('Impulse response');
 %%1.2
 % u = prbs(n,p);
 
-u = prbs(5,3);
+u = prbs(5,3); %create signal
 u = u(:);
 
-[R,h] = intcor(u,u);
+[R,h] = intcor(u,u); %auto correlation
 
 % figure;
 stem(h,R);
@@ -56,17 +56,12 @@ xlabel('lag');
 ylabel('R');
 
 %% 1.3 Impulse response by deconvolution method
-
-% t = (0:Ts:(N-1)*Ts)';
-% u_rand = 1.8*rand(N,1) - 0.9;
-
-%% 1.3 Impulse response by deconvolution method
-% random input generation
+% random input generation -#1
 N = 400;
 m = 50;
 lambda = 0.1;
 
-t = (0:Ts:(N-1)*Ts)';
+t = (0:Ts:(N-1)*Ts)'; %time vector -#3
 u_rand = 1.8 * rand(N,1) - 0.9;
 
 %%check
@@ -95,18 +90,18 @@ y = y(1:L);
 u_rand = u_rand(1:L);
 t = t(1:L);
 
-% Construct Toeplitz input matrix */
+% Construct Toeplitz input matrix  - #2
 first_col = u_rand;
 first_row = [u_rand(1) zeros(1,m-1)];
 U = toeplitz(first_col, first_row);
 
-% Least-squares estimate */
+% Least-squares estimate  
 g_hat = U \ y;
 
-% Regularized estimate */
+% Regularized estimate  
 g_reg = (U' * U + lambda * eye(m)) \ (U' * y);
 
-% True discrete-time impulse response */
+% True discrete-time impulse response  
 Gs = tf([-1 1.5], [1 0.85 3]);
 Gd = c2d(Gs, Ts, 'zoh');
 
@@ -114,8 +109,8 @@ tg = (0:m-1)' * Ts;
 [g_true, t_true] = impulse(Gd, tg);
 g_true = squeeze(g_true);
 
-% Plots */
-figure;
+% Plots  
+figure; % random input
 plot(t, u_rand);
 grid on;
 xlabel('Time (s)');
@@ -153,3 +148,8 @@ xlabel('Time (s)');
 ylabel('g');
 title('Comparison of impulse responses');
 legend('True', 'Least squares', 'Regularized');
+
+
+
+%% 1.4 Impulse Response by correlation approach
+u = prbs(3,8);
