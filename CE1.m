@@ -178,13 +178,23 @@ Y_fft_avg = mean(Y_fft_mat, 1);
 
 G = Y_fft_avg ./ U_fft_avg;
 
+
 omega_s = 2*pi*(1/Ts);
 frequencies = 0:omega_s/length_of_period:(length_of_period-1)*omega_s/length_of_period;
 
-model = frd(G, frequencies);
+% Number of points to keep (0 to Nyquist)
+n_half = floor(length_of_period/2) + 1;
 
-%one_period_G = Y_fft_mat(1,:) ./ U_fft_mat(1,:);
-%one_period = frd(one_period_G, frequencies);
+G_half = G(1:n_half);
+freq_half = frequencies(1:n_half);
+
+% Create the model using only the meaningful half
+model = frd(G_half, freq_half);
+
+%model = frd(G, frequencies);
+
+one_period_G = Y_fft_mat(8,:) ./ U_fft_mat(8,:);
+one_period = frd(one_period_G, frequencies);
 
 % Calculate the frequency response from the model
 [mag, phase, w] = bode(model);
