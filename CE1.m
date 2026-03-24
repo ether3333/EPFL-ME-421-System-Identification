@@ -144,3 +144,59 @@ plot(tOut_true, g)
 plot(tOut_true, y_true, 'k', 'LineWidth', 2, 'DisplayName', 'True Response');
 legend('Intcor', 'Xcor', 'True')
 hold off;
+
+
+%% 1.5 Frequency Domain Identification (Periodic signal)
+Ts = 0.1;
+
+Uprbs = prbs(8,8);
+
+N = length(Uprbs);
+
+t = 0:Ts:(N-1)*Ts;
+
+simin = struct;
+simin.time = t;
+simin.signals.values = Uprbs;
+
+simout = sim("CE1simulink.slx");
+Y = simout.simout.Data(1:N,:);
+
+periods = 8;
+length_of_period = N/periods;
+
+U_fft_mat = zeros(periods, length_of_period);
+Y_fft_mat = zeros(periods, length_of_period);
+
+for p = 1:periods
+    U_fft_mat(p, :) = fft(Uprbs((p-1)*length_of_period + 1:p*length_of_period));
+    Y_fft_mat(p, :) = fft(Y((p-1)*length_of_period + 1:p*length_of_period));
+end
+
+U_fft_avg = mean(U_fft_mat,1);
+Y_fft_avg = mean(Y_fft_mat, 1);
+
+G = Y_fft_avg ./ U_fft_avg;
+
+omega_s = 2*pi*(1/Ts);
+frequencies = 0:omega_s/length_of_period:(length_of_period-1)*omega_s/length_of_period;
+
+model = frd(G, frequencies);
+
+%one_period_G = Y_fft_mat(1,:) ./ U_fft_mat(1,:);
+%one_period = frd(one_period_G, frequencies);
+
+% Calculate the frequency response from the model
+[mag, phase, w] = bode(model);
+[mag_true, phase_true, w_true] = bode(G_discrete);
+
+figure;
+subplot(2,1,1);
+hold on;
+semilogx(w, 20*log10(squeeze(mag)));
+semilogx(w_true, 20*log10(squeeze(mag_true)));
+xlabel('Frequency (rad/s)');
+ylabel('Magnitude (dB)');
+title('Frequency Response');
+grid on;
+hold off
