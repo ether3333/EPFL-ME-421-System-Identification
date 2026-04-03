@@ -198,15 +198,61 @@ one_period = frd(one_period_G, frequencies);
 
 % Calculate the frequency response from the model
 [mag, phase, w] = bode(model);
+
+G = tf([-1 1.5], [1 0.85 3]);
+G_discrete = c2d(G, Ts, 'zoh');
+
 [mag_true, phase_true, w_true] = bode(G_discrete);
 
 figure;
-subplot(2,1,1);
 hold on;
-semilogx(w, 20*log10(squeeze(mag)));
-semilogx(w_true, 20*log10(squeeze(mag_true)));
-xlabel('Frequency (rad/s)');
-ylabel('Magnitude (dB)');
+% semilogx(w, 20*log10(squeeze(mag)));
+% semilogx(w_true, 20*log10(squeeze(mag_true)));
+bode(model,G_discrete)
+% xlabel('Frequency (rad/s)');
+% ylabel('Magnitude (dB)');
 title('Frequency Response');
 grid on;
 hold off
+
+%% 1.6 Frequency domain Identification (Random signal)
+Ts = 0.1;
+fs = 1/Ts;
+A = 0.9;
+N = 2000;
+
+u_rand = A*sign(randn(1, N));
+
+t = 0:Ts:(N-1)*Ts;
+
+simin = struct;
+simin.time = t;
+simin.signals.values = u_rand';
+
+simout = sim("CE1simulink.slx");
+y = simout.simout.Data(1:N,:);
+
+U = fft(u);
+Y = fft(y);
+
+Suu = (abs(U).^2) / (N * fs);               % auto PSD of input
+Syu = (Y .* conj(U)) / (N * fs);            % cross PSD output/input
+
+H = Syu ./ Suu;                             % FRF estimate
+
+f = (0:N-1) * (fs/N);
+f_half = f(1:N/2+1);
+H_half = H(1:N/2+1);
+
+figure;
+subplot(2,1,1)
+plot(f_half, 20*log10(abs(H_half)))
+ylabel('Magnitude (dB)')
+title('Frequency Response Function')
+grid on
+
+subplot(2,1,2)
+plot(f_half, angle(H_half) * 180/pi)
+ylabel('Phase (degrees)')
+xlabel('Frequency (Hz)')
+grid on
