@@ -14,15 +14,21 @@ simin.signals.values = u_step;
 
 simout = sim("CE1simulink.slx");
 
-unitStepResponse = simout.simout.Data;
+y_step_noisy = simout.simout.Data;
+
+G = tf([-1 1.5], [1 0.85 3]);
+t_step = simout.tout;
+y_step_true = step(G, t_step);
 
 figure;
-plot(simout.tout, unitStepResponse)
+plot(t_step, y_step_true, 'LineWidth', 1.5)
 hold on;
-plot(t,u_step)
-xlabel('Time (s)'); ylabel('Amplitude');
-legend('System Output', 'Step Input');
-title('Step response')
+plot(t_step, y_step_noisy, '--', 'LineWidth', 1.2)
+xlabel('Time (s)');
+ylabel('Amplitude');
+legend('Noiseless step response', 'Noisy step response');
+title('Unit Step Response: Noiseless vs Noisy');
+grid on;
 hold off
 
 %% Impulse
@@ -30,7 +36,8 @@ impulseStartTime = 1.0;
 t = (0:Ts:20)';
 
 u_impulse = zeros(length(t),1);
-u_impulse(t == 1) = 1/Ts;
+[~, idx_imp] = min(abs(t - impulseStartTime));
+u_impulse(idx_imp) = 1/Ts;
 
 simin = struct;
 simin.time = (0:Ts:20)';
@@ -38,23 +45,36 @@ simin.signals.values = u_impulse;
 
 simout = sim("CE1simulink.slx");
 
+y_imp_noisy = simout.simout.Data;
+t_imp = simout.tout;
+
+G = tf([-1 1.5], [1 0.85 3]);
+G_discrete = c2d(G, Ts, 'zoh');
+y_imp_true = impulse(G_discrete, t_imp) * Ts;
+
 figure;
-plot(simout.tout, simout.simout.Data);
+plot(t_imp, y_imp_true, 'LineWidth', 1.5)
 hold on;
-%plot(t,u_impulse)
-xlabel('Time (s)'); ylabel('Amplitude');
-%legend('System Output', 'Step Input');
-title('Impulse response')
+plot(t_imp, y_imp_noisy, '--', 'LineWidth', 1.2)
+xlabel('Time (s)');
+ylabel('Amplitude');
+legend('Noiseless impulse response', 'Noisy impulse response');
+title('Impulse Response: Noiseless vs Noisy');
+grid on;
 hold off
 
 
 
 %% 1.2 Auto Correlation of a PRBS signal
-u_prbs = prbs(5,3);
+u_prbs = prbs(6,4); %not sure why you did (5,3) but I changed it as what GPT said
 [R_uu, h] = intcor(u_prbs, u_prbs);
 
 figure;
-stem(h, R_uu)
+stem(h, R_uu, 'filled')
+xlabel('Lag')
+ylabel('Autocorrelation')
+title('Autocorrelation of PRBS(6,4)')
+grid on
 
 
 %% 1.3 Impulse response by deconvolution method
@@ -132,18 +152,35 @@ R_uu_matrix_trunc = toeplitz(R_uu_hat_trunc);
 g = R_uu_matrix_trunc \ R_yu_hat_trunc; %%ASK IF WE NEED TO DO THIS
 
 [R_yu_xcorr, lags] = xcorr(Y, Uprbs, 'unbiased');
-zero_index = find(lags == 0);
-lags = lags .*Ts;
-h_yu = h_yu .*Ts;
+[R_uu_xcorr, lags_uu] = xcorr(Uprbs, Uprbs, 'unbiased');
+zero_index_uu = find(lags_uu == 0);
+zero_index_yu = find(lags == 0);
+
+R_uu_xcorr_trunc = R_uu_xcorr(zero_index_uu:zero_index_uu+K-1);
+R_yu_xcorr_trunc = R_yu_xcorr(zero_index_yu:zero_index_yu+K-1);
+
+R_uu_xcorr_matrix = toeplitz(R_uu_xcorr_trunc);
+g_xcorr = R_uu_xcorr_matrix \ R_yu_xcorr_trunc;
+
+t_corr = (0:K-1)' * Ts;
+
+err_intcor = norm(g_intcor - y_true, 2);
+err_xcorr = norm(g_xcorr - y_true, 2);
 
 figure;
-plot(h_yu, R_yu_hat)
+plot(t_corr, g_intcor, 'o-', 'DisplayName', 'Impulse response using intcor')
 hold on;
-plot(lags((zero_index):(zero_index +600)), R_yu_xcorr((zero_index):(zero_index +600)))
-plot(tOut_true, g)
-plot(tOut_true, y_true, 'k', 'LineWidth', 2, 'DisplayName', 'True Response');
-legend('Intcor', 'Xcor', 'True')
+plot(t_corr, g_xcorr, 'x-', 'DisplayName', 'Impulse response using xcorr')
+plot(tOut_true, y_true, 'k', 'LineWidth', 2, 'DisplayName', 'True response')
+xlabel('Time (s)')
+ylabel('Amplitude')
+legend
+title('Impulse Responses Identified by Correlation Methods')
+grid on
 hold off;
+
+fprintf('2-norm error using intcor: %.6f\n', err_intcor);
+fprintf('2-norm error using xcorr : %.6f\n', err_xcorr);
 
 
 %% 1.5 Frequency Domain Identification (Periodic signal)
