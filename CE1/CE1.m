@@ -66,7 +66,7 @@ hold off
 
 
 %% 1.2 Auto Correlation of a PRBS signal
-u_prbs = prbs(6,4); %not sure why you did (5,3) but I changed it as what GPT said
+u_prbs = prbs(6,4); %can't remember why you did (5,3) but I changed it as what report requires
 [R_uu, h] = intcor(u_prbs, u_prbs);
 
 figure;
