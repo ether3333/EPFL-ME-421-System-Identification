@@ -1,6 +1,8 @@
 clearvars -except u y
 
 %%2.1.1
+[y, u, Ts] = GetExperimentData('data.m');
+
 % u, y are column vectors
 u = u(:);
 y = y(:);
@@ -30,6 +32,7 @@ y_hat = Phi * theta_hat;
 % Plot measured output and predicted output
 figure;
 
+prediction_error = y_used - y_hat;
 % Compute the loss function
 J = sum(prediction_error.^2);
 
