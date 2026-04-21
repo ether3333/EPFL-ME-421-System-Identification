@@ -17,11 +17,9 @@ end
 y_used = y(m+1:N);
 
 %Make each row to 200 inputs
-Phi = zeros(N-m, m);
-
-for i = 1:(N-m)
-    Phi(i,:) = u(m+i-1:-1:i).';
-end
+first_col = u(m:N-1);
+first_row = u(m:-1:1);
+Phi = toeplitz(first_col, first_row);
 
 %define Theta hat
 theta_hat = Phi \ y_used;
@@ -37,3 +35,4 @@ J = sum(prediction_error.^2);
 
 % Display the loss function
 fprintf('Loss function J(theta_hat) = %.6f\n', J);
+
