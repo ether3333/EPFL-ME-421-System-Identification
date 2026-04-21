@@ -149,10 +149,9 @@ hold off;
 %% 1.5 Frequency Domain Identification (Periodic signal)
 Ts = 0.1;
 
-Uprbs = prbs(8,8);
 
+Uprbs = prbs(8,8); %gives a length of 2040
 N = length(Uprbs);
-
 t = 0:Ts:(N-1)*Ts;
 
 simin = struct;
@@ -164,7 +163,6 @@ Y = simout.simout.Data(1:N,:);
 
 periods = 8;
 length_of_period = N/periods;
-
 U_fft_mat = zeros(periods, length_of_period);
 Y_fft_mat = zeros(periods, length_of_period);
 
@@ -179,47 +177,35 @@ Y_fft_avg = mean(Y_fft_mat, 1);
 G = Y_fft_avg ./ U_fft_avg;
 
 
-omega_s = 2*pi*(1/Ts);
+omega_s = 2*pi/Ts;
 frequencies = 0:omega_s/length_of_period:(length_of_period-1)*omega_s/length_of_period;
 
-% Number of points to keep (0 to Nyquist)
+% Number of points to keep (0 to Nyquist frequency)
 n_half = floor(length_of_period/2) + 1;
 
 G_half = G(1:n_half);
 freq_half = frequencies(1:n_half);
 
-% Create the model using only the meaningful half
 model = frd(G_half, freq_half);
 
-%model = frd(G, frequencies);
-
-one_period_G = Y_fft_mat(8,:) ./ U_fft_mat(8,:);
-one_period = frd(one_period_G, frequencies);
-
-% Calculate the frequency response from the model
-[mag, phase, w] = bode(model);
-
-G = tf([-1 1.5], [1 0.85 3]);
-G_discrete = c2d(G, Ts, 'zoh');
-
-[mag_true, phase_true, w_true] = bode(G_discrete);
+G_true = tf([-1 1.5], [1 0.85 3]);
+G_discrete = c2d(G_true, Ts, 'zoh');
 
 figure;
-hold on;
-% semilogx(w, 20*log10(squeeze(mag)));
-% semilogx(w_true, 20*log10(squeeze(mag_true)));
-bode(model,G_discrete)
-% xlabel('Frequency (rad/s)');
-% ylabel('Magnitude (dB)');
-title('Frequency Response');
+bode(model,G_discrete, freq_half)
+legend('Averaged (8 periods)', 'True response');
+title('Frequency Response Identification via PRBS');
 grid on;
-hold off
+
 
 %% 1.6 Frequency domain Identification (Random signal)
 Ts = 0.1;
 fs = 1/Ts;
 A = 0.9;
 N = 2000;
+
+G_true = tf([-1 1.5], [1 0.85 3]);
+G_discrete = c2d(G_true, Ts, 'zoh');
 
 u_rand = A*sign(randn(1, N));
 
