@@ -36,3 +36,16 @@ J = sum(prediction_error.^2);
 % Display the loss function
 fprintf('Loss function J(theta_hat) = %.6f\n', J);
 
+% Estimate noise variance
+n = length(y_used);      % Number of output samples used
+p = m;                   % Number of estimated parameters
+sigma2_hat = J / (n - p);
+
+% Compute covariance matrix of estimated parameters
+Cov_theta = sigma2_hat * inv(Phi' * Phi);
+
+sigma_theta = sqrt(diag(Cov_theta));
+
+errorbar(1:m, theta_hat, 2*sigma_theta, 'o');
+
+figure;
