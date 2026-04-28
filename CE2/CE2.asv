@@ -46,7 +46,7 @@ fprintf('Loss function J(theta_hat) = %.6f\n', J);
 
 %3
 % Estimate noise variance
-sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used
+sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used <<Not really sure
 cov_theta_hat = sigma_sq_hat * inv(Phi'*Phi);
 
 theta_std = sqrt(diag(cov_theta_hat)); %compute the lenght of interval (σ)
@@ -73,16 +73,21 @@ J = sum(prediction_error.^2);
 % Plot measured output and predicted output
 k = (3:N)';
 figure;
-plot(k, y_used, 'b');
+plot(k, y_used, 'b', 'LineWidth',1.5);
 hold on;
 plot(k, y_hat, 'r');
 hold off;
 
 %3
-t = (0:N-1)' * Ts;
+%generate y_m - use Transfer Function or Caculate maually???
+%3-1) use TF
+t = (0:N-1)' * Ts; %time vector; generated for lsim
 sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
-y_m = lsim(sys_hat, u, Ts);
-y_m_used = y_m(3:N);
+y_m = lsim(sys_hat, u, t);
+y_m_used = y_m(3:N); %can only compare from k=3
+
+%3-2) Calculate Manually
+
 
 error = y_used - y_m_used;
 error_norm = norm(error, 2);
@@ -96,4 +101,10 @@ title('Measured output y and y_m');
 grid on;
 
 fprintf('Two-norm of the error = %.6f\n', error_norm);
-%4 Instrumental Varibale 
+%4 Instrumental Varibale method
+
+% Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
+% theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
+% 
+% y_hat_iv = Phi * theta_iv;
+% J_iv = sum((y_used - y_m_iv_used))

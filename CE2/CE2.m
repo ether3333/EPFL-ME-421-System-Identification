@@ -47,7 +47,7 @@ fprintf('Loss function J(theta_hat) = %.6f\n', J);
 
 %3
 % Estimate noise variance
-sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used
+sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used <<Not really sure
 cov_theta_hat = sigma_sq_hat * inv(Phi'*Phi);
 
 theta_std = sqrt(diag(cov_theta_hat)); %compute the lenght of interval (σ)
@@ -66,7 +66,7 @@ N = length(u);
 Phi = [-y(2:N-1), -y(1:N-2), u(2:N-1), u(1:N-2)]; %k=3,4,...N
 y_used = y(3:N);
 %1
-theta_hat = inv(Phi' * Phi) * Phi' * y_used;
+theta_hat = Phi\ y_used;
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
@@ -80,7 +80,7 @@ plot(k, y_hat, 'r');
 hold off;
 
 %3
-t = (0:N-1)' * Ts; %time vector
+t = (0:N-1)' * Ts; %time vector; generated for lsim
 sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
 y_m = lsim(sys_hat, u, t);
 y_m_used = y_m(3:N); %can only compare from k=3
