@@ -83,7 +83,7 @@ hold off;
 t = (0:N-1)' * Ts; %time vector
 sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
 y_m = lsim(sys_hat, u, t);
-y_m_used = y_m(3:N); %compare can be from k=3
+y_m_used = y_m(3:N); %can only compare from k=3
 
 error = y_used - y_m_used;
 error_norm = norm(error, 2);
