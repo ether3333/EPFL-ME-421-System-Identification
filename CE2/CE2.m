@@ -35,6 +35,7 @@ figure;
 plot(k, y_used, 'b');
 hold on;
 plot(k, y_hat, 'r');
+legend('True y', 'Estimated y')
 hold off;
 
 xlabel('index m+1 to N');
@@ -81,7 +82,7 @@ hold off;
 %3
 t = (0:N-1)' * Ts; %time vector
 sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
-y_m = lsim(sys_hat, u, Ts);
+y_m = lsim(sys_hat, u, t);
 y_m_used = y_m(3:N); %compare can be from k=3
 
 error = y_used - y_m_used;
@@ -90,7 +91,7 @@ error_norm = norm(error, 2);
 figure;
 plot(k, y_used, 'b');
 hold on;
-plot(k, ym_used, 'r');
+plot(k, y_m_used, 'r');
 hold off;
 title('Measured output y and y_m');
 grid on;
