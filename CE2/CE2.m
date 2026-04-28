@@ -66,7 +66,7 @@ N = length(u);
 Phi = [-y(2:N-1), -y(1:N-2), u(2:N-1), u(1:N-2)]; %k=3,4,...N
 y_used = y(3:N);
 %1
-theta_hat = Phi\ y_used;
+theta_hat = (Phi'*Phi)\(Phi'*y_used);
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
@@ -97,10 +97,21 @@ title('Measured output y and y_m');
 grid on;
 
 fprintf('Two-norm of the error = %.6f\n', error_norm);
+
 %4 Instrumental Varibale method
 
-% Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
-% theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
-% 
-% y_hat_iv = Phi * theta_iv;
-% J_iv = sum((y_used - y_m_iv_used))
+Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
+theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
+y_hat_iv = Phi * theta_iv; %use this bc we need to use same model structure
+J_iv = sum((y_used - y_hat_iv).^2);
+
+figure;
+plot(k, y_m_used, 'g');
+hold on;
+plot(k, y_hat_iv, 'r');
+hold off;
+title('Comparision of ARX result and Instrumental Variable method');
+grid on;
+
+fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
+%Difference of J
