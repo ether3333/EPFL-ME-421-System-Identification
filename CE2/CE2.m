@@ -60,4 +60,46 @@ grid on;
 
 
 %% 2.1.2 ARX model identification
+
+N = length(u);
+Phi = [-y(2:N-1), -y(1:N-2), u(2:N-1), u(1:N-2)]; %k=3,4,...N
+y_used = y(3:N);
 %1
+theta_hat = inv(Phi' * Phi) * Phi' * y_used;
+%2
+y_hat = Phi * theta_hat;
+prediction_error = y_used - y_hat;
+J = sum(prediction_error.^2);
+% Plot measured output and predicted output
+k = (3:N)';
+figure;
+plot(k, y_used, 'b', 'LineWidth',1.5);
+hold on;
+plot(k, y_hat, 'r');
+hold off;
+
+%3
+t = (0:N-1)' * Ts; %time vector
+sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
+y_m = lsim(sys_hat, u, Ts);
+y_m_used = y_m(3:N); %compare can be from k=3
+
+error = y_used - y_m_used;
+error_norm = norm(error, 2);
+
+figure;
+plot(k, y_used, 'b');
+hold on;
+plot(k, ym_used, 'r');
+hold off;
+title('Measured output y and y_m');
+grid on;
+
+fprintf('Two-norm of the error = %.6f\n', error_norm);
+%4 Instrumental Varibale method
+
+% Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
+% theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
+% 
+% y_hat_iv = Phi * theta_iv;
+% J_iv = sum((y_used - y_m_iv_used))
