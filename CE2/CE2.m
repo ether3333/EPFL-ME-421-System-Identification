@@ -117,3 +117,17 @@ fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
 %Difference of J
 
 %% 2.1.3 State-space model identification
+%1
+Y = zeros(r, N);
+U = zeros(r, N);
+
+for k = 1:N
+    Y(:,k) = y(k:k+r-1);
+    U(:,k) = u(k:k+r-1);
+end
+
+U_perp = I - U'*((U*U')\U);
+Q = Y*U_perp;
+
+%2
+[UU, S, V] = svd(Q);

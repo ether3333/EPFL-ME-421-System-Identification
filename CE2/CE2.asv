@@ -66,7 +66,7 @@ N = length(u);
 Phi = [-y(2:N-1), -y(1:N-2), u(2:N-1), u(1:N-2)]; %k=3,4,...N
 y_used = y(3:N);
 %1
-theta_hat = Phi\ y_used; %%%%
+theta_hat = (Phi'*Phi)\(Phi'*y_used);
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
@@ -113,4 +113,16 @@ hold off;
 title('Comparision of ARX result and Instrumental Variable method');
 grid on;
 
-fprintf('Two-norm of the error = %.6f\n', error_norm);
+fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
+%Difference of J
+
+%% 2.1.3 State-space model identification
+%1
+Ns = length(y);
+
+for k = 1:N
+    Y(:,k) = y(k:k+i);
+    U(:,k) = u(k:k+i);
+end
+
+Q = Y*U;
