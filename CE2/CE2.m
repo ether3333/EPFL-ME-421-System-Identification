@@ -115,3 +115,5 @@ grid on;
 
 fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
 %Difference of J
+
+%% 2.1.3 State-space model identification
