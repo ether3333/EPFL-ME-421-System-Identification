@@ -24,7 +24,8 @@ Phi = toeplitz(first_col, first_row);
 
 y_used = y(m+1:N); % follow conditions of FIR
 %1
-theta_hat = Phi \ y_used; % Least-square solution
+theta_hat = (Phi'*Phi)\(Phi'*y_used); % Least-square solution
+
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
@@ -140,7 +141,6 @@ sing_values = diag(S);
 figure;
 plot(diag(S), 'o-');
 grid on;
-
 
 n = 5; %Compute manually by diag(S)? how to estimate n?(slide 22)
 Or = UU(:,1:n);
