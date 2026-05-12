@@ -24,7 +24,8 @@ Phi = toeplitz(first_col, first_row);
 
 y_used = y(m+1:N); % follow conditions of FIR
 %1
-theta_hat = Phi \ y_used; % Least-square solution
+theta_hat = (Phi'*Phi)\(Phi'*y_used); % Least-square solution
+
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
@@ -48,7 +49,7 @@ fprintf('Loss function J(theta_hat) = %.6f\n', J);
 %3
 % Estimate noise variance
 sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used <<Not really sure
-cov_theta_hat = sigma_sq_hat * inv(Phi'*Phi);
+cov_theta_hat = sigma_sq_hat / (Phi'*Phi);
 
 theta_std = sqrt(diag(cov_theta_hat)); %compute the lenght of interval (σ)
 %plot
@@ -119,17 +120,18 @@ fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
 %% 2.1.3 State-space model identification
 %1
 N = length(u);
-L = 
-r = 20;
+r = 25; %random value
+L = N-r+1; %number of columns
+
 Y = zeros(r, L);
 U = zeros(r, L);
 
-for k = 1:N
+for k = 1:L
     Y(:,k) = y(k:k+r-1);
     U(:,k) = u(k:k+r-1);
 end
 
-U_perp = I - U'*((U*U')\U);
+U_perp = eye(L) - U'*((U*U')\U);
 Q = Y*U_perp;
 
 %2
@@ -140,6 +142,25 @@ figure;
 plot(diag(S), 'o-');
 grid on;
 
-
-n = 5; %Compute manually by diag(S)?
+n = 5; %Compute manually by diag(S); height difference start to change
 Or = UU(:,1:n);
+
+%3
+n_y = 1; %system is SISO 
+C = Or(1:n_y,:); 
+
+Or_first = Or(1:r-1,:);
+Or_last = Or(2:r,:);
+A = Or_first \ Or_last;
+
+%4
+Phi_B = zeros(N,n);
+e = zeros(n,1);
+e(1i)=1;
+
+u_fi(k) = ss(A,e,C,0,Ts);
+Phi_B = lsim(u_fi(k), u, t);
+
+B = (Phi_B'*Phi_B)\(Phi_B'*y); 
+
+%5

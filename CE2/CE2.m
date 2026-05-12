@@ -49,7 +49,7 @@ fprintf('Loss function J(theta_hat) = %.6f\n', J);
 %3
 % Estimate noise variance
 sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used <<Not really sure
-cov_theta_hat = sigma_sq_hat * inv(Phi'*Phi);
+cov_theta_hat = sigma_sq_hat / (Phi'*Phi);
 
 theta_std = sqrt(diag(cov_theta_hat)); %compute the lenght of interval (σ)
 %plot
@@ -142,7 +142,7 @@ figure;
 plot(diag(S), 'o-');
 grid on;
 
-n = 5; %Compute manually by diag(S)? how to estimate n?(slide 22)
+n = 5; %Compute manually by diag(S); height difference start to change
 Or = UU(:,1:n);
 
 %3
@@ -154,3 +154,15 @@ Or_last = Or(2:r,:);
 A = Or_first \ Or_last;
 
 %4
+Phi_B = zeros(N,n);
+for i = 1:n
+    e = zeros(n,1);
+    e(i)=1;
+
+    u_fi(i) = ss(A,e,C,0,Ts);
+    Phi_B(:,i) = lsim(u_fi(i), u, t);
+end
+
+B = (Phi_B'*Phi_B)\(Phi_B'*y); 
+
+%5
