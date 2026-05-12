@@ -118,16 +118,39 @@ fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
 
 %% 2.1.3 State-space model identification
 %1
-Y = zeros(r, N);
-U = zeros(r, N);
+N = length(u);
+r = 25; %random value
+L = N-r+1; %number of columns
 
-for k = 1:N
+Y = zeros(r, L);
+U = zeros(r, L);
+
+for k = 1:L
     Y(:,k) = y(k:k+r-1);
     U(:,k) = u(k:k+r-1);
 end
 
-U_perp = I - U'*((U*U')\U);
+U_perp = eye(L) - U'*((U*U')\U);
 Q = Y*U_perp;
 
 %2
 [UU, S, V] = svd(Q);
+sing_values = diag(S);
+
+figure;
+plot(diag(S), 'o-');
+grid on;
+
+
+n = 5; %Compute manually by diag(S)? how to estimate n?(slide 22)
+Or = UU(:,1:n);
+
+%3
+n_y = 1; %system is SISO 
+C = Or(1:n_y,:); 
+
+Or_first = Or(1:r-1,:);
+Or_last = Or(2:r,:);
+A = Or_first \ Or_last;
+
+%4
