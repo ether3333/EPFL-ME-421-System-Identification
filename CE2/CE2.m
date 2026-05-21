@@ -159,10 +159,25 @@ for i = 1:n
     e = zeros(n,1);
     e(i)=1;
 
-    u_fi(i) = ss(A,e,C,0,Ts);
-    Phi_B(:,i) = lsim(u_fi(i), u, t);
+    F_i = ss(A,e,C,0,Ts);
+    Phi_B(:,i) = lsim(F_i, u, t);
 end
 
 B = (Phi_B'*Phi_B)\(Phi_B'*y); 
 
 %5
+SS_hat = ss(A,B,C,0,Ts);
+y_m = lsim(SS_hat, u, t);
+
+error = y - y_m;
+error_norm = norm(error, 2);
+
+figure;
+plot(t, y,'b');
+plot(t, y_m, 'r');
+grid on;
+xlabel('Time [s]');
+ylabel('Output');
+title('2.1.3 Measured Output y vs State-Space Model Output y_m');
+
+fprintf('two norm of the error = %.6f\n', error_norm);
