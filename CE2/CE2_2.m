@@ -7,11 +7,11 @@ nk = 1;
 
 % Bode plot
 figure;
-bode(spa(data));
+bode(spa(data, 200));
 title('Bode Diagram of Raw Data');
 grid on;
 
-
+%%
 %Loss function
 orders = zeros(1,10);
 losses = zeros(1,10);
@@ -46,14 +46,16 @@ for delta = 2:6
 end  
 
 % Estimate delay
+
 model = arx(data, [4 4 1]); %use estimated order, delay = 1 (first value is 0), the others dont matter
 disp('B coefficients:'); disp(model.B)
 disp('Standard deviations of B:'); disp(model.db)
 
-
 NN = struc(1:10, 1:10, 1:5);  
 V = arxstruc(data(1:500), data(501:end), NN);
-nn = selstruc(V);  
+nn = selstruc(V); 
+disp('Order suggested by selstruc [na nb nk]:'); disp(nn)
+% 
 
 % NN = struc(1:3,1:2,2:4);
 % V = arxstruc(data(1:500), data(501:1000), NN);
@@ -73,7 +75,7 @@ nd = na;
 nf = na;
 nx = na;    % number of states for n4sid (global order = delta)
 
-% Split data: first half for identification, second half for validation
+% Split data
 N = length(data.y);
 n_split = floor(N/2);
 data_id  = data(1:n_split);
