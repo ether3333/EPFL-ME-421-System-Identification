@@ -41,15 +41,15 @@ hold off;
 
 xlabel('index m+1 to N');
 ylabel('output Y');
-title('Measured output and predicted output');
+title('2.1.1 Measured output and predicted output');
 grid on;
 % Display the loss function
-fprintf('Loss function J(theta_hat) = %.6f\n', J);
+fprintf('2.1.1 Loss function J(theta_hat) = %.6f\n', J);
 
 %3
 % Estimate noise variance
-sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used <<Not really sure
-cov_theta_hat = sigma_sq_hat / (Phi'*Phi);
+sigma_sq_hat = J / ((N-m)-m); %N-m is #of data actually used
+cov_theta_hat = sigma_sq_hat *inv(Phi'*Phi);
 
 theta_std = sqrt(diag(cov_theta_hat)); %compute the lenght of interval (σ)
 %plot
@@ -68,10 +68,21 @@ Phi = [-y(2:N-1), -y(1:N-2), u(2:N-1), u(1:N-2)]; %k=3,4,...N
 y_used = y(3:N);
 %1
 theta_hat = (Phi'*Phi)\(Phi'*y_used);
+
+%print parameters
+fprintf('2.1.2-1 theta_hat = %g\n', theta_hat);
+
+fprintf('a1 = %.4f\n', theta_hat(1));
+fprintf('a2 = %.4f\n', theta_hat(2));
+fprintf('b1 = %.4f\n', theta_hat(3));
+fprintf('b2 = %.4f\n', theta_hat(4));
+
 %2
 y_hat = Phi * theta_hat;
 prediction_error = y_used - y_hat;
 J = sum(prediction_error.^2);
+fprintf('2.1.2-2 Loss function J = %.6f\n', J);
+
 % Plot measured output and predicted output
 k = (3:N)';
 figure;
@@ -79,6 +90,9 @@ plot(k, y_used, 'b', 'LineWidth',1.5);
 hold on;
 plot(k, y_hat, 'r');
 hold off;
+title('2.1.2-2 Measured output and predicted output');
+grid on;
+legend('Measured output (y\_used)', 'Predicted output (y\_hat)');
 
 %3
 t = (0:N-1)' * Ts; %time vector; generated for lsim
@@ -86,33 +100,39 @@ sys_hat = tf([0 theta_hat(3) theta_hat(4)], [1 theta_hat(1) theta_hat(2)], Ts);
 y_m = lsim(sys_hat, u, t);
 y_m_used = y_m(3:N); %can only compare from k=3
 
-error = y_used - y_m_used;
-error_norm = norm(error, 2);
-
 figure;
 plot(k, y_used, 'b');
 hold on;
 plot(k, y_m_used, 'r');
 hold off;
-title('Measured output y and y_m');
+title('2.1.2-3 Measured output y and y_m');
 grid on;
+legend('Measured output (y\_used)', 'Simulated output (y\_m\_used)');
 
-fprintf('Two-norm of the error = %.6f\n', error_norm);
+error = y_used - y_m_used;
+error_norm = norm(error, 2);
+fprintf('2.1.2-3 Two-norm of the error = %.6f\n', error_norm);
 
-%4 Instrumental Varibale method
+%4 Instrumental Variable method
 
 Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
 theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
 y_hat_iv = Phi * theta_iv; %use this bc we need to use same model structure
 J_iv = sum((y_used - y_hat_iv).^2);
 
+%print parameters
+fprintf('theta_iv = %g\n', theta_iv);
+
+%plot and compare
 figure;
-plot(k, y_m_used, 'g');
+plot(k, y_used, 'b','LineWidth',1.5);
 hold on;
+plot(k, y_m_used, 'g');
 plot(k, y_hat_iv, 'r');
 hold off;
-title('Comparision of ARX result and Instrumental Variable method');
+title('2.1.2-4 Comparision of ARX result and Instrumental Variable method');
 grid on;
+legend('Measured output (y\_used)','ARX model output (y\_m\_used)', 'IV model output (y\_hat\_iv)');
 
 fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
 %Difference of J
@@ -138,10 +158,11 @@ Q = Y*U_perp;
 [UU, S, V] = svd(Q);
 sing_values = diag(S);
 
+%plot singular values of Q
 figure;
 plot(diag(S), 'o-');
 grid on;
-
+title('2.1.3 -2 Plot of singular values of Q');
 n = 5; %Compute manually by diag(S); height difference start to change
 Or = UU(:,1:n);
 
@@ -153,14 +174,33 @@ Or_first = Or(1:r-1,:);
 Or_last = Or(2:r,:);
 A = Or_first \ Or_last;
 
+%give values of A and C
+fprintf()
 %4
 Phi_B = zeros(N,n);
-e = zeros(n,1);
-e(1i)=1;
+for i = 1:n
+    e = zeros(n,1);
+    e(i)=1;
 
-u_fi(k) = ss(A,e,C,0,Ts);
-Phi_B = lsim(u_fi(k), u, t);
+    F_i = ss(A,e,C,0,Ts);
+    Phi_B(:,i) = lsim(F_i, u, t);
+end
 
 B = (Phi_B'*Phi_B)\(Phi_B'*y); 
 
 %5
+SS_hat = ss(A,B,C,0,Ts);
+y_m = lsim(SS_hat, u, t);
+
+error = y - y_m;
+error_norm = norm(error, 2);
+
+figure;
+plot(t, y,'b');
+plot(t, y_m, 'r');
+grid on;
+xlabel('Time [s]');
+ylabel('Output');
+title('2.1.3 Measured Output y vs State-Space Model Output y_m');
+
+fprintf('two norm of the error = %.6f\n', error_norm);
