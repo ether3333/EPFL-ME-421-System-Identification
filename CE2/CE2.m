@@ -117,8 +117,14 @@ fprintf('2.1.2-3 Two-norm of the error = %.6f\n', error_norm);
 
 Phi_iv = [-y_m(k-1), -y_m(k-2), u(k-1), u(k-2)];
 theta_iv = (Phi_iv'*Phi)\(Phi_iv'*y_used);
-y_hat_iv = Phi * theta_iv; %use this bc we need to use same model structure
-J_iv = sum((y_used - y_hat_iv).^2);
+% y_hat_iv = Phi * theta_iv;
+% J_iv = sum((y_used - y_hat_iv).^2);
+
+sys_iv = tf([0 theta_iv(3) theta_iv(4)], ...
+    [1 theta_iv(1) theta_iv(2)], Ts);
+
+y_m_iv = lsim(sys_iv, u, t);
+y_m_iv_used = y_m_iv(3:N);
 
 %print parameters
 fprintf('theta_iv = %g\n', theta_iv);
@@ -128,14 +134,25 @@ figure;
 plot(k, y_used, 'b','LineWidth',1.5);
 hold on;
 plot(k, y_m_used, 'g');
-plot(k, y_hat_iv, 'r');
+plot(k, y_m_iv_used, 'r');
 hold off;
 title('2.1.2-4 Comparision of ARX result and Instrumental Variable method');
 grid on;
-legend('Measured output (y\_used)','ARX model output (y\_m\_used)', 'IV model output (y\_hat\_iv)');
+legend('Measured output (y\_used)','ARX model output (y\_m\_used)', 'IV model output (y\_m\_iv\_used)');
 
-fprintf('J_iv = %.6f\n', J_iv); %Shall we compare the J too? How to show??
-%Difference of J
+
+% Print comparison values
+error_arx = y_used - y_m_used;
+error_iv = y_used - y_m_iv_used;
+
+norm_arx = norm(error_arx, 2);
+norm_iv = norm(error_iv, 2);
+
+fprintf('ARX prediction loss J_ARX = %.6f\n', J);
+fprintf('IV prediction loss J_IV = %.6f\n', J_iv);
+
+fprintf('ARX output error 2-norm = %.6f\n', norm_arx);
+fprintf('IV output error 2-norm = %.6f\n', norm_iv);
 
 %% 2.1.3 State-space model identification
 %1
