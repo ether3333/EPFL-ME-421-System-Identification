@@ -127,7 +127,7 @@ fprintf('theta_iv = %g\n', theta_iv);
 figure;
 plot(k, y_used, 'b','LineWidth',1.5);
 hold on;
-plot(k, y_hat, 'g');
+plot(k, y_m_used, 'g');
 plot(k, y_hat_iv, 'r');
 hold off;
 title('2.1.2-4 Comparision of ARX result and Instrumental Variable method');
